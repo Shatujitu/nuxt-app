@@ -10,3 +10,31 @@ services:
       - ./.env
     ports:
       - '3000:3000'
+  webserver:
+    image: nginx:mainline-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - web-root:/var/www/html
+      - ./nginx-conf:/etc/nginx/conf.d
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - web-root:/var/www/html
+    depends_on:
+      - webserver
+    command: certonly --webroot --webroot-path=/var/www/html --email info@technovativesolutions.co.uk --agree-tos --no-eff-email --staging -d technovativesolutions.co.uk  -d www.technovativesolutions.co.uk
+volumes:
+  certbot-etc:
+  certbot-var:
+  web-root:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/info/nuxt-app/views/
+      o: bind
